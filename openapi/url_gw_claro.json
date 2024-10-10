@@ -1,0 +1,1077 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "APIs",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://clarogateway.flexdev.aws.clarobrasil.mobi",
+      "description": "Claro_Flex_SIT"
+    }
+  ],
+  "paths": {
+    "/rw-middleware/v1/query": {
+      "post": {
+        "summary": "Query Offers",
+        "description": "Recover the plan catalogs",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/x-application-key"
+          },
+          {
+            "$ref": "#/components/parameters/x-application-id"
+          },
+          {
+            "$ref": "#/components/parameters/x-organization-slug"
+          },
+          {
+            "$ref": "#/components/parameters/x-channel-id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 - Sucesso"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "resources": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "resource": {
+                          "type": "string",
+                          "example": "catalogValidity"
+                        },
+                        "with": {
+                          "type": "object",
+                          "properties": {
+                            "filter": {
+                              "type": "object",
+                              "properties": {
+                                "customer": {
+                                  "type": "object",
+                                  "properties": {
+                                    "tags": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "tag": {
+                                            "type": "string",
+                                            "example": "join_rede_video_newprice"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                },
+                                "exclusiveProfile": {
+                                  "type": "boolean",
+                                  "example": true
+                                },
+                                "mergeCatalogs": {
+                                  "type": "boolean",
+                                  "example": true
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ext-application/v1/catalogs/migracao": {
+      "get": {
+        "summary": "Get Migration Catalog",
+        "description": "Recover the plan catalogs for the given flow",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/x-application-key"
+          },
+          {
+            "$ref": "#/components/parameters/x-application-id"
+          },
+          {
+            "$ref": "#/components/parameters/x-channel-id"
+          },
+          {
+            "$ref": "#/components/parameters/x-organization-slug"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 - Sucesso"
+          }
+        }
+      }
+    },
+    "/ext-application/v1/customer/:cpf": {
+      "get": {
+        "summary": "Get Customer By CPF",
+        "description": "Consult customer by the document number (CPF)",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/x-application-key"
+          },
+          {
+            "$ref": "#/components/parameters/x-application-id"
+          },
+          {
+            "$ref": "#/components/parameters/x-organization-slug"
+          },
+          {
+            "$ref": "#/components/parameters/x-channel-id"
+          },
+          {
+            "$ref": "#/components/parameters/x-app-version"
+          },
+          {
+            "$ref": "#/components/parameters/x-platform-version"
+          },
+          {
+            "$ref": "#/components/parameters/x-platform"
+          },
+          {
+            "name": "cpf",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "{cpf}"
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "404 - Customer n\u00e3o existe"
+          },
+          "200": {
+            "description": "200 - Sucesso"
+          }
+        }
+      }
+    },
+    "/rw-middleware/v2/acquisition": {
+      "post": {
+        "summary": "Acquisition",
+        "description": "Create customer and purchase order",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/x-application-key"
+          },
+          {
+            "$ref": "#/components/parameters/x-application-id"
+          },
+          {
+            "$ref": "#/components/parameters/x-organization-slug"
+          },
+          {
+            "$ref": "#/components/parameters/x-channel-id"
+          },
+          {
+            "name": "content-type",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "",
+            "examples": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "201 - Criado"
+          }
+        }
+      }
+    },
+    "/rw-middleware/v3/auth": {
+      "post": {
+        "summary": "Authenticate",
+        "description": "Authenticate in Claro Flex APP",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/x-application-key"
+          },
+          {
+            "$ref": "#/components/parameters/x-application-id"
+          },
+          {
+            "$ref": "#/components/parameters/x-organization-slug"
+          },
+          {
+            "$ref": "#/components/parameters/x-channel-id"
+          },
+          {
+            "$ref": "#/components/parameters/x-uid"
+          },
+          {
+            "$ref": "#/components/parameters/x-customer-id"
+          },
+          {
+            "name": "x-recaptcha",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "examples": [
+              {
+                "summary": "Claro_Flex_SIT",
+                "value": "03AGdBq25rVNpG7jFzZYatsIxnZrPMCQWeS7F_j4ZrYkcvjmWMtZRJFmk96t9rxSDssKruKKbiS5i9FmYiate1mrNoTSVp2VVa5FIJhfGKE99tS9Nczd1syXLC_GIksB9cq6w_UtmqBaOsmFVjWzcGEH3K4m5_itv6PQSo6jxyz"
+              }
+            ]
+          },
+          {
+            "$ref": "#/components/parameters/x-app-version"
+          },
+          {
+            "$ref": "#/components/parameters/x-platform"
+          },
+          {
+            "$ref": "#/components/parameters/x-platform-version"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 - Sucesso"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "uid": {
+                    "type": "string",
+                    "example": "46469342809"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "Claro@122"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ext-application/v1/customer/subscriber/{msisdn}": {
+      "get": {
+        "summary": "Consult Subscriber",
+        "description": "Consut the MSISDN subscriber in WPP system (pre paid)",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/x-application-key"
+          },
+          {
+            "$ref": "#/components/parameters/x-application-id"
+          },
+          {
+            "$ref": "#/components/parameters/x-organization-slug"
+          },
+          {
+            "$ref": "#/components/parameters/x-channel-id"
+          },
+          {
+            "$ref": "#/components/parameters/x-uid"
+          },
+          {
+            "$ref": "#/components/parameters/x-customer-id"
+          },
+          {
+            "$ref": "#/components/parameters/x-app-version"
+          },
+          {
+            "$ref": "#/components/parameters/x-platform"
+          },
+          {
+            "$ref": "#/components/parameters/x-platform-version"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 - Sucesso"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/ext-application/v1/coupon/purchase-order/{purchase_order_id}/coupon": {
+      "post": {
+        "summary": "Add Coupon",
+        "description": "Add discount coupon in purchase order",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/x-application-key"
+          },
+          {
+            "$ref": "#/components/parameters/x-application-id"
+          },
+          {
+            "$ref": "#/components/parameters/x-organization-slug"
+          },
+          {
+            "$ref": "#/components/parameters/x-channel-id"
+          },
+          {
+            "$ref": "#/components/parameters/x-uid"
+          },
+          {
+            "$ref": "#/components/parameters/x-customer-id"
+          },
+          {
+            "$ref": "#/components/parameters/x-app-version"
+          },
+          {
+            "$ref": "#/components/parameters/x-platform"
+          },
+          {
+            "$ref": "#/components/parameters/x-platform-version"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 - Sucesso"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "example": "VIRAFLEX15"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rw-middleware/v1/cart": {
+      "get": {
+        "summary": "Get Cart",
+        "description": "Recover the customers purchase orders",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/x-application-key"
+          },
+          {
+            "$ref": "#/components/parameters/x-application-id"
+          },
+          {
+            "$ref": "#/components/parameters/x-organization-slug"
+          },
+          {
+            "$ref": "#/components/parameters/x-channel-id"
+          },
+          {
+            "$ref": "#/components/parameters/x-uid"
+          },
+          {
+            "$ref": "#/components/parameters/x-customer-id"
+          },
+          {
+            "$ref": "#/components/parameters/x-app-version"
+          },
+          {
+            "$ref": "#/components/parameters/x-platform"
+          },
+          {
+            "$ref": "#/components/parameters/x-platform-version"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 - Sucesso"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/ext-application/v1/customer/tobe/balance/{msisdn}": {
+      "get": {
+        "summary": "Colsult Balance",
+        "description": "Consult MSISDN balance and create an wallet to be used in APP",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/x-application-key"
+          },
+          {
+            "$ref": "#/components/parameters/x-application-id"
+          },
+          {
+            "$ref": "#/components/parameters/x-organization-slug"
+          },
+          {
+            "$ref": "#/components/parameters/x-channel-id"
+          },
+          {
+            "$ref": "#/components/parameters/x-uid"
+          },
+          {
+            "$ref": "#/components/parameters/x-customer-id"
+          },
+          {
+            "$ref": "#/components/parameters/x-app-version"
+          },
+          {
+            "$ref": "#/components/parameters/x-platform"
+          },
+          {
+            "$ref": "#/components/parameters/x-platform-version"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 - Sucesso"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/rw-middleware/v1/acquisition/checkout": {
+      "post": {
+        "summary": "Checkout With Credit Card",
+        "description": "Do the purchase order checkout",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/x-application-key"
+          },
+          {
+            "$ref": "#/components/parameters/x-application-id"
+          },
+          {
+            "$ref": "#/components/parameters/x-organization-slug"
+          },
+          {
+            "$ref": "#/components/parameters/x-channel-id"
+          },
+          {
+            "$ref": "#/components/parameters/x-uid"
+          },
+          {
+            "$ref": "#/components/parameters/x-customer-id"
+          },
+          {
+            "$ref": "#/components/parameters/x-app-version"
+          },
+          {
+            "$ref": "#/components/parameters/x-platform"
+          },
+          {
+            "$ref": "#/components/parameters/x-platform-version"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 - Sucesso Copy"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "installationAttributes": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "attributes": {
+                          "type": "object",
+                          "properties": {
+                            "ddd": {
+                              "type": "string",
+                              "example": "11"
+                            },
+                            "chipSimDelivery": {
+                              "type": "string",
+                              "example": "FALSE"
+                            },
+                            "storeFlow": {
+                              "type": "string",
+                              "example": "FALSE"
+                            },
+                            "msisdn": {
+                              "type": "string",
+                              "example": "5511947600272"
+                            },
+                            "imei": {
+                              "type": "string",
+                              "example": "6138abdc58901bd5"
+                            },
+                            "activationType": {
+                              "type": "string",
+                              "example": "MIGRATION"
+                            }
+                          }
+                        },
+                        "productTypeId": {
+                          "type": "string",
+                          "example": "4bd2f2c5-2a1d-4977-b50d-c858f9019a83"
+                        }
+                      }
+                    }
+                  },
+                  "methods": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "customFields": {
+                          "type": "object",
+                          "properties": {
+                            "deviceInfo": {
+                              "type": "object",
+                              "properties": {
+                                "brand": {
+                                  "type": "string",
+                                  "example": "samsung"
+                                },
+                                "deviceUniqueId": {
+                                  "type": "string",
+                                  "example": "NRD90M"
+                                },
+                                "fingerPrint": {
+                                  "type": "string",
+                                  "example": "samsung/dream2ltexx/dream2lte:7.1.2/NRD90M/G955FXXU1AQJ5:user/release-keys"
+                                },
+                                "manufacturer": {
+                                  "type": "string",
+                                  "example": "samsung"
+                                },
+                                "model": {
+                                  "type": "string",
+                                  "example": "SM-G955F"
+                                },
+                                "userAgent": {
+                                  "type": "string",
+                                  "example": "Dalvik/2.1.0 (Linux; U; Android 7.1.2; SM-G955F Build/NRD90M)"
+                                },
+                                "wifiMacAddress": {
+                                  "type": "string",
+                                  "example": "41:75:83:31:74:41"
+                                }
+                              }
+                            },
+                            "lineInfo": {
+                              "type": "object",
+                              "properties": {
+                                "ddd": {
+                                  "type": "string",
+                                  "example": "11"
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "method": {
+                          "type": "string",
+                          "example": "CREDIT_CARD"
+                        },
+                        "methodId": {
+                          "type": "string",
+                          "example": "CARD-p2jQm9Vo2kSQvN1zvaM7B_wqj5KNxp_aaU7k-slRFVw="
+                        },
+                        "price": {
+                          "type": "object",
+                          "properties": {
+                            "amount": {
+                              "type": "number",
+                              "example": 9999
+                            },
+                            "currency": {
+                              "type": "string",
+                              "example": "BRL"
+                            },
+                            "scale": {
+                              "type": "number",
+                              "example": 2
+                            }
+                          }
+                        },
+                        "securityCode": {
+                          "type": "string",
+                          "example": "123"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rw-middleware/v2/customer/credit-card": {
+      "post": {
+        "summary": "Add Credit Card",
+        "description": "Add credit card to APP wallet",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/x-application-key"
+          },
+          {
+            "$ref": "#/components/parameters/x-application-id"
+          },
+          {
+            "$ref": "#/components/parameters/x-organization-slug"
+          },
+          {
+            "$ref": "#/components/parameters/x-channel-id"
+          },
+          {
+            "$ref": "#/components/parameters/x-uid"
+          },
+          {
+            "$ref": "#/components/parameters/x-customer-id"
+          },
+          {
+            "$ref": "#/components/parameters/x-app-version"
+          },
+          {
+            "$ref": "#/components/parameters/x-platform"
+          },
+          {
+            "$ref": "#/components/parameters/x-platform-version"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 - Sucesso"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "authorizationRequired": {
+                    "type": "boolean",
+                    "example": false
+                  },
+                  "bin": {
+                    "type": "string",
+                    "example": "402400"
+                  },
+                  "brand": {
+                    "type": "string",
+                    "example": "VISA"
+                  },
+                  "deviceInfo": {
+                    "type": "object",
+                    "properties": {
+                      "brand": {
+                        "type": "string",
+                        "example": "samsung"
+                      },
+                      "deviceUniqueId": {
+                        "type": "string",
+                        "example": "NRD90M"
+                      },
+                      "fingerPrint": {
+                        "type": "string",
+                        "example": "samsung/dream2ltexx/dream2lte:7.1.2/NRD90M/G955FXXU1AQJ5:user/release-keys"
+                      },
+                      "manufacturer": {
+                        "type": "string",
+                        "example": "samsung"
+                      },
+                      "model": {
+                        "type": "string",
+                        "example": "SM-G955F"
+                      },
+                      "userAgent": {
+                        "type": "string",
+                        "example": "Dalvik/2.1.0 (Linux; U; Android 7.1.2; SM-G955F Build/NRD90M)"
+                      },
+                      "wifiMacAddress": {
+                        "type": "string",
+                        "example": "41:75:83:31:74:41"
+                      }
+                    }
+                  },
+                  "documentNumber": {
+                    "type": "string",
+                    "example": "46469342809"
+                  },
+                  "expirationMonth": {
+                    "type": "string",
+                    "example": "06"
+                  },
+                  "expirationYear": {
+                    "type": "string",
+                    "example": "2025"
+                  },
+                  "holder": {
+                    "type": "string",
+                    "example": "Nair Alessandra Isabelle Monteiro"
+                  },
+                  "lastDigits": {
+                    "type": "string",
+                    "example": "4673"
+                  },
+                  "lineInfo": {
+                    "type": "object",
+                    "properties": {
+                      "ddd": {
+                        "type": "string",
+                        "example": "11"
+                      }
+                    }
+                  },
+                  "msisdn": {
+                    "type": "string",
+                    "example": "5511947600272"
+                  },
+                  "mainCard": {
+                    "type": "boolean",
+                    "example": true
+                  },
+                  "securityCode": {
+                    "type": "string",
+                    "example": "123"
+                  },
+                  "token": {
+                    "type": "string",
+                    "example": "3CDB89A1-550B-49B5-8A65-E951E5CB2624"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rw-middleware/v1/acquisition/step": {
+      "get": {
+        "summary": "Check Migration Status",
+        "description": "Check the payment, migration and product status",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/x-application-key"
+          },
+          {
+            "$ref": "#/components/parameters/x-application-id"
+          },
+          {
+            "$ref": "#/components/parameters/x-organization-slug"
+          },
+          {
+            "$ref": "#/components/parameters/x-channel-id"
+          },
+          {
+            "$ref": "#/components/parameters/x-uid"
+          },
+          {
+            "$ref": "#/components/parameters/x-customer-id"
+          },
+          {
+            "$ref": "#/components/parameters/x-app-version"
+          },
+          {
+            "$ref": "#/components/parameters/x-platform"
+          },
+          {
+            "$ref": "#/components/parameters/x-platform-version"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 - Sucesso (Falha no Pagamento)"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/ext-application/v1/customer/:customerId/products": {
+      "get": {
+        "summary": "Get Products",
+        "description": "Get the products of the given customer. Product is the same that the line or the MSISDN after the migration.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/x-application-key"
+          },
+          {
+            "$ref": "#/components/parameters/x-application-id"
+          },
+          {
+            "$ref": "#/components/parameters/x-organization-slug"
+          },
+          {
+            "$ref": "#/components/parameters/x-channel-id"
+          },
+          {
+            "$ref": "#/components/parameters/x-uid"
+          },
+          {
+            "$ref": "#/components/parameters/x-customer-id"
+          },
+          {
+            "$ref": "#/components/parameters/x-app-version"
+          },
+          {
+            "$ref": "#/components/parameters/x-platform"
+          },
+          {
+            "$ref": "#/components/parameters/x-platform-version"
+          },
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "{customer_id}"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 - Sucesso"
+          }
+        }
+      }
+    },
+    "/ext-application/v1/find/subscription/customer/:customerId/product/:productId": {
+      "get": {
+        "summary": "Get Subscription",
+        "description": "Get the subscription of the given customer and product. The subscription has information about the current plan, renewals and discounts.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/x-application-key"
+          },
+          {
+            "$ref": "#/components/parameters/x-application-id"
+          },
+          {
+            "$ref": "#/components/parameters/x-organization-slug"
+          },
+          {
+            "$ref": "#/components/parameters/x-channel-id"
+          },
+          {
+            "$ref": "#/components/parameters/x-app-version"
+          },
+          {
+            "$ref": "#/components/parameters/x-platform"
+          },
+          {
+            "$ref": "#/components/parameters/x-platform-version"
+          },
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "{customer_id}"
+          },
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "{product_id}"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 - Sucesso"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "parameters": {
+      "x-application-key": {
+        "name": "x-application-key",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "examples": [
+          {
+            "summary": "Claro_Flex_SIT",
+            "value": "80cef9e0d2fe013bd34d000d3ac06d76"
+          }
+        ]
+      },
+      "x-application-id": {
+        "name": "x-application-id",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "examples": [
+          {
+            "summary": "Claro_Flex_SIT",
+            "value": "ac76a7739985cdacad94eecd7f04ff64a97e0e93"
+          }
+        ]
+      },
+      "x-organization-slug": {
+        "name": "x-organization-slug",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "examples": [
+          {
+            "summary": "Claro_Flex_SIT",
+            "value": "claro"
+          }
+        ]
+      },
+      "x-channel-id": {
+        "name": "x-channel-id",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "examples": [
+          {
+            "summary": "Claro_Flex_SIT",
+            "value": "6062f134-b4b1-41db-98ad-c3b289fed970"
+          }
+        ]
+      },
+      "x-app-version": {
+        "name": "x-app-version",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "examples": [
+          {
+            "summary": "Claro_Flex_SIT",
+            "value": "6.40.99"
+          }
+        ]
+      },
+      "x-platform-version": {
+        "name": "x-platform-version",
+        "in": "header",
+        "required": false,
+        "schema": {
+          "type": "string"
+        },
+        "examples": [
+          {
+            "summary": "Claro_Flex_SIT",
+            "value": "6.0"
+          }
+        ]
+      },
+      "x-platform": {
+        "name": "x-platform",
+        "in": "header",
+        "required": false,
+        "schema": {
+          "type": "string"
+        },
+        "examples": [
+          {
+            "summary": "Claro_Flex_SIT",
+            "value": "iOS"
+          }
+        ]
+      },
+      "x-uid": {
+        "name": "x-uid",
+        "in": "header",
+        "required": false,
+        "schema": {
+          "type": "string"
+        },
+        "example": "4b99272c-8ca8-4070-925d-c457663af537"
+      },
+      "x-customer-id": {
+        "name": "x-customer-id",
+        "in": "header",
+        "required": false,
+        "schema": {
+          "type": "string"
+        },
+        "example": "1820ef8a-7134-4bd7-bbff-cd16161c3918"
+      }
+    }
+  }
+}

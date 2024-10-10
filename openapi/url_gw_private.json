@@ -1,0 +1,232 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "APIs",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://clarogatewayprivate.flexdev.aws.clarobrasil.mobi",
+      "description": "Claro_Flex_SIT"
+    }
+  ],
+  "paths": {
+    "/customer/v1/customer-subscriber/balance/{msisdn}": {
+      "get": {
+        "summary": "Consult Balance",
+        "description": "Consult the MSISDN balance in WPP system (for pre paid only)",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/x-application-key"
+          },
+          {
+            "name": "x-source-application-address",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "",
+            "examples": []
+          },
+          {
+            "name": "x-source-application-code",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "",
+            "examples": []
+          },
+          {
+            "name": "x-source-channel-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "",
+            "examples": []
+          },
+          {
+            "name": "x-source-correlation-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "",
+            "examples": []
+          },
+          {
+            "name": "x-source-date-time",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "",
+            "examples": []
+          },
+          {
+            "name": "x-source-operation-code",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "",
+            "examples": []
+          },
+          {
+            "name": "x-source-user-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "",
+            "examples": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 - Sucesso"
+          }
+        },
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ]
+      }
+    },
+    "/customer/v1/customer-subscriber/refill": {
+      "post": {
+        "summary": "Recharge",
+        "description": "Recharge MSISDN balance in WPP system (for pre paid only)",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/x-application-key"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 - Sucesso"
+          }
+        },
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "refillType": {
+                    "type": "object",
+                    "properties": {
+                      "msisdn": {
+                        "type": "string",
+                        "example": "11947600272"
+                      },
+                      "voucher": {
+                        "type": "object",
+                        "properties": {
+                          "group": {
+                            "type": "object",
+                            "properties": {
+                              "groupId": {
+                                "type": "string",
+                                "example": "N0"
+                              },
+                              "value": {
+                                "type": "number",
+                                "example": 100
+                              },
+                              "unitType": {
+                                "type": "object",
+                                "properties": {
+                                  "unitType": {
+                                    "type": "string",
+                                    "example": "REAIS"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "paymentForm": {
+                        "type": "string",
+                        "example": "VOUCHER"
+                      }
+                    }
+                  },
+                  "metaInfo": {
+                    "type": "object",
+                    "properties": {
+                      "applicationCode": {
+                        "type": "string",
+                        "example": "FLEX"
+                      },
+                      "correlationId": {
+                        "type": "string",
+                        "example": "0"
+                      },
+                      "applicationAddress": {
+                        "type": "string",
+                        "example": "claroprivate.zup.me"
+                      },
+                      "userId": {
+                        "type": "string",
+                        "example": "12000000"
+                      },
+                      "date": {
+                        "type": "string",
+                        "example": "2023-11-30T14:47:59.14-02:00"
+                      },
+                      "channelId": {
+                        "type": "string",
+                        "example": "FLEX"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "basicAuth": {
+        "type": "http",
+        "scheme": "Basic"
+      }
+    },
+    "parameters": {
+      "x-application-key": {
+        "name": "x-application-key",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "examples": [
+          {
+            "summary": "Claro_Flex_SIT",
+            "value": "80cef9e0d2fe013bd34d000d3ac06d76"
+          }
+        ]
+      }
+    }
+  }
+}

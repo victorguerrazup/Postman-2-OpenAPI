@@ -1,0 +1,8 @@
+{
+  "auth_url": "https://idm.stackspot.com/stk-claro/oidc/oauth/token",
+  "stk_ai_url": "https://genai-code-buddy-api.stackspot.com",
+  "client_id": "f6ffc45a-67dc-490d-b1aa-aa5facf83e1f", 
+  "client_key": "z49hwLAnva5l6AyjOfddqVUdrH0nn57eHJ97N1ja8ca27U0CSgcEgr6557uEZO86",
+  "ks_slug_openapi": "claro-flex-apis",
+  "ks_slug_custom": "qa-buddy"
+}

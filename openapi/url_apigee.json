@@ -1,0 +1,260 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "APIs",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://api-test.claro.com.br",
+      "description": "Claro_Flex_SIT"
+    }
+  ],
+  "paths": {
+    "/oauth2/v1/token": {
+      "post": {
+        "summary": "00 - Auth",
+        "description": "Authenticate in Apigee APIs",
+        "parameters": [
+          {
+            "name": "x-client-auth",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "",
+            "examples": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 - Sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "refresh_token_expires_in": {
+                      "type": "string",
+                      "example": "0"
+                    },
+                    "api_product_list": {
+                      "type": "string",
+                      "example": "[customerbalances-claroflex-public]"
+                    },
+                    "api_product_list_json": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "organization_name": {
+                      "type": "string",
+                      "example": "clarobrasil-nonprod"
+                    },
+                    "developer.email": {
+                      "type": "string",
+                      "example": "9f911282-24be-45cc-abb8-a9ed07a417fc@devteam.apigee.io"
+                    },
+                    "token_type": {
+                      "type": "string",
+                      "example": "Bearer"
+                    },
+                    "issued_at": {
+                      "type": "string",
+                      "example": "1727381502996"
+                    },
+                    "client_id": {
+                      "type": "string",
+                      "example": "9rVZCkr6xFuXlWRYCKSXp7VmPy4LGVIY"
+                    },
+                    "access_token": {
+                      "type": "string",
+                      "example": "kwYBPotpAodQaGwa6bsj5V26AApM"
+                    },
+                    "application_name": {
+                      "type": "string",
+                      "example": "90a479a0-de73-4258-be68-a39481b90789"
+                    },
+                    "scope": {
+                      "type": "string",
+                      "example": ""
+                    },
+                    "expires_in": {
+                      "type": "string",
+                      "example": "86399"
+                    },
+                    "refresh_count": {
+                      "type": "string",
+                      "example": "0"
+                    },
+                    "status": {
+                      "type": "string",
+                      "example": "approved"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "grant_type": {
+                    "type": "string",
+                    "example": "client_credentials"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/mobile/v1/customerbalances": {
+      "post": {
+        "summary": "Consult Balance",
+        "description": "Consult MSISDN balance in Charging System (Claro Flex only)",
+        "parameters": [
+          {
+            "name": "x-client-auth",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "",
+            "examples": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 - Sucesso"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "msisdn": {
+                    "type": "string",
+                    "example": "5511947600272"
+                  },
+                  "timestamp": {
+                    "type": "string",
+                    "example": "20231128T12:34:00-0300"
+                  },
+                  "transactionID": {
+                    "type": "string",
+                    "example": "1"
+                  },
+                  "originNodeType": {
+                    "type": "string",
+                    "example": "EXT"
+                  },
+                  "originHostName": {
+                    "type": "string",
+                    "example": "ClaroFlex"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/mobile/v1/customerbalancesrecharge": {
+      "post": {
+        "summary": "Recharge",
+        "description": "Recharge MSISDN balance in Charging System (Claro Flex only)",
+        "parameters": [
+          {
+            "name": "x-client-auth",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "",
+            "examples": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 - Sucesso"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "msisdn": {
+                    "type": "string",
+                    "example": "5511947600272"
+                  },
+                  "timestamp": {
+                    "type": "string",
+                    "example": "20231127T12:34:00-0300"
+                  },
+                  "transactionID": {
+                    "type": "string",
+                    "example": "11"
+                  },
+                  "dedicatedAccountID": {
+                    "type": "string",
+                    "example": "220"
+                  },
+                  "negotiatedCapabilities": {
+                    "type": "object",
+                    "properties": {
+                      "member": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "type": "string",
+                              "example": "1576"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "amount": {
+                    "type": "string",
+                    "example": "10000"
+                  },
+                  "originNodeType": {
+                    "type": "string",
+                    "example": "EXT"
+                  },
+                  "originHostName": {
+                    "type": "string",
+                    "example": "ClaroFlex"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {},
+    "parameters": {}
+  }
+}
