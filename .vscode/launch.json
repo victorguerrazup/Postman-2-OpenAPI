@@ -5,12 +5,12 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Depurador do Python: Arquivo Atual",
+      "name": "Postman2Openapi",
       "type": "debugpy",
       "request": "launch",
-      "program": "${file}",
+      "program": "Postman2Openapi.py",
       "console": "integratedTerminal",
-      "args": []
+      "args": ["-d", "~/projects/claro-flex-collections"]
     }
   ]
 }
