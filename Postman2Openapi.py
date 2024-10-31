@@ -14,71 +14,61 @@ parameters = {
     'name': 'x-application-key',
     'in': 'header',
     'required': True,
-    'schema': {'type': 'string'},
-    'example': '{app_key}'
+    'schema': {'type': 'string', 'example': '{app_key}'},
   },
   'x-application-id': {
     'name': 'x-application-id',
     'in': 'header',
     'required': True,
-    'schema': {'type': 'string'},
-    'example': '{app_id}'
+    'schema': {'type': 'string', 'example': '{app_id}'},
   },
   'x-organization-slug': {
     'name': 'x-organization-slug',
     'in': 'header',
     'required': True,
-    'schema': {'type': 'string'},
-    'example': '{org_slug}'
+    'schema': {'type': 'string', 'example': '{org_slug}'},
   },
   'x-channel-id': {
     'name': 'x-channel-id',
     'in': 'header',
     'required': True,
-    'schema': {'type': 'string'},
-    'example': '{channel_id}'
+    'schema': {'type': 'string', 'example': '{channel_id}'},
   },
   'x-app-version': {
     'name': 'x-app-version',
     'in': 'header',
     'required': True,
-    'schema': {'type': 'string'},
-    'example': '{app_version}'
+    'schema': {'type': 'string', 'example': '{app_version}'},
   },
   'x-platform-version': {
     'name': 'x-platform-version',
     'in': 'header',
     'required': False,
-    'schema': {'type': 'string'},
-    'example': '{platform_version}'
+    'schema': {'type': 'string', 'example': '{platform_version}'},
   },
   'x-platform': {
     'name': 'x-platform',
     'in': 'header',
     'required': False,
-    'schema': {'type': 'string'},
-    'example': '{platform}'
+    'schema': {'type': 'string', 'example': '{platform}'},
   },
   'x-uid': {
     'name': 'x-uid',
     'in': 'header',
     'required': False,
-    'schema': {'type': 'string'},
-    'example': '{user_id}'
+    'schema': {'type': 'string', 'example': '{user_id}'},
   },
   'x-customer-id': {
     'name': 'x-customer-id',
     'in': 'header',
     'required': False,
-    'schema': {'type': 'string'},
-    'example': '{customer_id}'
+    'schema': {'type': 'string', 'example': '{customer_id}'},
   },
   'x-msisdn': {
     'name': 'x-msisdn',
     'in': 'header',
     'required': False,
-    'schema': {'type': 'string'},
-    'example': '{msisdn}'
+    'schema': {'type': 'string', 'example': '{msisdn}'},
   }
 }
 
@@ -228,64 +218,65 @@ def process_auth(auth_type, components_in_openapi, method_in_openapi):
     components_in_openapi['securitySchemes'].setdefault('basicAuth', security_schemes['basicAuth'])
     method_in_openapi['security'] = [{'basicAuth': []}]
 
+def process_parameter_value(parameter, value):
+  """Processa o valor do parâmetro, ajustando 'example' e 'examples'."""
+  if isinstance(value, dict):
+    parameter['schema'].pop('example', None)
+    parameter['schema']['examples'] = [{'summary': key, 'value': value[key]} for key in value]
+  else:
+    parameter['schema'].pop('examples', None)
+    parameter['schema']['example'] = value
+
 # Função para processar cabeçalhos
 def process_headers(headers, components_in_openapi, method_in_openapi):
   for header in headers:
     header_key = header['key'].lower()
+
+    # Processa cabeçalhos de autorização
     if header_key == 'authorization':
       process_auth_header(header, components_in_openapi, method_in_openapi)
-    elif header_key in parameters:
+      continue
+
+    # Processa cabeçalhos definidos nos parâmetros
+    if header_key in parameters:
       ref_value = f'#/components/parameters/{header_key}'
       ref_object = {'$ref': ref_value}
       parameter = copy.deepcopy(parameters[header_key])
-      parameter_example = parameter['example']
+      parameter_example = parameter['schema']['example']
       processed_parameter_example = process_variable_name(parameter_example)
-      if processed_parameter_example in environment_variables:
+
+      # Substitui variáveis de ambiente ou de coleção
+      if processed_parameter_example in collection_variables:
+        parameter['schema'].pop('examples', None)
+        parameter['schema']['example'] = replace_variables(parameter_example)
+      elif processed_parameter_example in environment_variables:
         value = replace_variables(parameter_example)
-        if type(value) == dict:
-          parameter.pop('example', None)
-          parameter['examples'] = []
-          for key in value:
-            parameter['examples'].append({
-              'summary': key,
-              'value': value[key]
-            })
-        else:
-          parameter.pop('examples', None)
-          parameter['example'] = value
-      elif processed_parameter_example in collection_variables:
-        parameter.pop('examples', None)
-        parameter['example'] = replace_variables(parameter_example)
+        process_parameter_value(parameter, value)
+
       components_in_openapi['parameters'].setdefault(header_key, parameter)
       if not any(param.get('$ref') == ref_value for param in method_in_openapi['parameters']):
         method_in_openapi['parameters'].append(ref_object)
-    else:
-      if not any(param.get('name') == header['key'] for param in method_in_openapi['parameters']):
-        parameter = {
-          'name': header['key'],
-          'in': 'header',
-          'required': False,
-          'schema': {'type': 'string'},
-          'example': '',
-          'examples': []
-        }
-        processed_value = process_variable_name(header['value'])
-        if processed_value in environment_variables:
-          value = replace_variables(header['value'])
-          if type(value) == dict:
-            parameter.pop('example', None)
-            for key in value:
-              parameter['examples'].append({
-                'summary': key,
-                'value': value[key]
-              })
-          else:
-            parameter.pop('examples', None)
-            parameter['example'] = value
-        elif processed_value in collection_variables:
-          parameter.pop('examples', None)
-          parameter['example'] = replace_collection_variables(parameter_example)
-        method_in_openapi['parameters'].append(parameter)
+      continue
+
+    # Processa outros cabeçalhos
+    if not any(param.get('name') == header['key'] for param in method_in_openapi['parameters']):
+      parameter = {
+        'name': header['key'],
+        'in': 'header',
+        'required': False,
+        'schema': {'type': 'string', 'example': '', 'examples': []},
+      }
+      processed_value = process_variable_name(header['value'])
+
+      # Substitui variáveis de ambiente ou de coleção
+      if processed_value in environment_variables:
+        value = replace_variables(header['value'])
+        process_parameter_value(parameter, value)
+      elif processed_value in collection_variables:
+        parameter['schema'].pop('examples', None)
+        parameter['schema']['example'] = replace_variables(header['value'])
+
+      method_in_openapi['parameters'].append(parameter)
 
 # Função para processar cabeçalhos de autenticação
 def process_auth_header(header, components_in_openapi, method_in_openapi):
@@ -305,8 +296,7 @@ def process_url_parameters(variables, method_in_openapi):
         'name': variable['key'],
         'in': 'path',
         'required': True,
-        'schema': {'type': 'string'},
-        'example': replace_variables(variable['value'])
+        'schema': {'type': 'string', 'example': replace_variables(variable['value'])},
       }
       if 'enum:' in variable.get('description', '').lower():
         enum_values = variable['description'].split(':')[1]

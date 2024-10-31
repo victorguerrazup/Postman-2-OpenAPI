@@ -4,15 +4,15 @@ import json
 import argparse
 import time
 
-access_token = {'token': 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjAyMTNlYjgwLTEzMzAtNDllZi1iMzIxLTRlNzE2YmQyNmM0OSIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkX3YyIjoiMDFIQVFZV0pHUEIxRVk1TkVYNjg3UlFSTlAiLCJhY2NvdW50X25hbWUiOiJTVEstQ2xhcm8iLCJhY2NvdW50X3NsdWciOiJzdGstY2xhcm8iLCJhY2NvdW50X3R5cGUiOiJFTlRFUlBSSVNFIiwiYXR0cmlidXRlcyI6e30sImF1ZCI6WyJmNmZmYzQ1YS02N2RjLTQ5MGQtYjFhYS1hYTVmYWNmODNlMWYiXSwiYXpwIjoiZWYzNDBhNzgtZTRiNi00MTEwLTg3MmUtNzc3ZGFmMTdmYzU1IiwiY2xpZW50SWQiOiJmNmZmYzQ1YS02N2RjLTQ5MGQtYjFhYS1hYTVmYWNmODNlMWYiLCJjbGllbnRfaWQiOiJmNmZmYzQ1YS02N2RjLTQ5MGQtYjFhYS1hYTVmYWNmODNlMWYiLCJlbWFpbCI6InZpY3Rvci5ndWVycmFAenVwLmNvbS5iciIsImV4cCI6MTcyODQ0MzE5NiwiZmFtaWx5X25hbWUiOiJHdWVycmEiLCJnaXZlbl9uYW1lIjoiVmljdG9yIiwiaWF0IjoxNzI4NDQxOTk2LCJpc3MiOiJodHRwczovL2F1dGguc3RhY2tzcG90LmNvbS9zdGstY2xhcm8vb2lkYyIsImp0aSI6IkcyVVp1RXNTN3RNbWtrQzR2S2tXYVNIMTFPa0lDVU1KbkZUdnpvZUJXdlB3ZkZ4ZEZhcG5qUjVLVkVkdzZlcUsiLCJtYXhfYWdlIjoxNzI4MTg0OTYyLCJuYW1lIjoiVmljdG9yIEd1ZXJyYSIsIm5iZiI6MTcyODQ0MTk5NiwicHJlZmVycmVkX3VzZXJuYW1lIjoidmljdG9yLmd1ZXJyYUB6dXAuY29tLmJyIiwicmVhbG0iOiJzdGstY2xhcm8iLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsic3R1ZGlvX2FkbWluIiwiZGVmYXVsdCB1c2VyIHJvbGU6IGY1YjI3NDMzLTI1OTItNGI5YS1hMmYyLTcxZGY3N2FmODE1ZCIsImNyZWF0b3IiLCJkZXZlbG9wZXIiLCJhaV9kZXZlbG9wZXIiLCJhY2NvdW50X2FkbWluIl19LCJyb2xlcyI6WyJzdHVkaW9fYWRtaW4iLCJkZWZhdWx0IHVzZXIgcm9sZTogZjViMjc0MzMtMjU5Mi00YjlhLWEyZjItNzFkZjc3YWY4MTVkIiwiY3JlYXRvciIsImRldmVsb3BlciIsImFpX2RldmVsb3BlciIsImFjY291bnRfYWRtaW4iXSwic2NvcGUiOiJhdHRyaWJ1dGVzIHJvbGVzIHByb2ZpbGUgZW1haWwiLCJzdWIiOiJmNmZmYzQ1YS02N2RjLTQ5MGQtYjFhYS1hYTVmYWNmODNlMWYiLCJ0ZW5hbnQiOiJzdGstY2xhcm8iLCJ0ZW5hbnRfaWQiOiJlZjM0MGE3OC1lNGI2LTQxMTAtODcyZS03NzdkYWYxN2ZjNTUiLCJ0b2tlblR5cGUiOiJDTElFTlRfU0VSVklDRV9BQ0NPVU5UIiwidG9rZW5fdHlwZSI6IkNMSUVOVF9QRVJTT05BTCIsInVzZXJfaWQiOiJmNWIyNzQzMy0yNTkyLTRiOWEtYTJmMi03MWRmNzdhZjgxNWQiLCJ1c2VybmFtZSI6InZpY3Rvci5ndWVycmFAenVwLmNvbS5iciJ9.MD8DIrobyL3iURESyUMFosDzfSrDTwc3C_SX8CWGrKFj1xv7w_7r6YkscKBa4WHxQPJJSt255Uyxjb9nF3FuNbH5LO_KzeAV768cC0CiVAWScbZ7AJ5xhaMUe0e8HkoDKvGrhWWYij4ny-gw4KFcUOEi9CWvQQ3WGX8YfH5KLfwbjtdbMAf7jjhHd5VuDHALEwmg7NTB4xa9wT0woZTed4RtuWyOhELwWHA9AkvBlCCcAVnxhOmiqhAKzNZOBQ3qhHFGasRocVObwD9_NNRrOWrYPLlUbGdhW6mI-sSqECpy4NGbLrYnKPY6nBeVLFr2Bin9Du1ucVWTUbLoGsz45-lvso7VTE-6exX9n0P-ne5T0EZuBqPXCTbdzfg8d-J30-XkP0S49-JkDGlCRFZbprxhLBSJcqYLK_RN__pKGl7PR9j4skpFV-cDgfbFny1Bl19cwFlqSrC3m_OQyUylg0uBlHoNo1miphkOWn_lvwxluUO4i5J5eVMo3IcFy3Lia_z2Uv1MLN7IeOtmaTu5ZguYE1jl0SOeO3QdKBZlIAcdarSdhz7Hza0PhBMv_CtK3rAouxauclfXjkyeWyjpdoZpkYF-lzGop04ndG7MufX76xcCZxTroJM3wB5eD036PwBUCREgKqbgCiXdR7hop2wbsU0zJ0eBYaKqnTYhQKc', 'expiry': 1728443196}
+access_token = {'token': '', 'expiry': 1728443196}
 
 options = {
-  'auth_url': 'https://idm.stackspot.com/stk-claro/oidc/oauth/token',
-  'stk_ai_url': 'https://genai-code-buddy-api.stackspot.com',
-  'client_id': 'f6ffc45a-67dc-490d-b1aa-aa5facf83e1f', 
-  'client_key': 'z49hwLAnva5l6AyjOfddqVUdrH0nn57eHJ97N1ja8ca27U0CSgcEgr6557uEZO86',
-  'ks_slug_openapi': 'claro-flex-apis',
-  'ks_slug_custom': 'qa-buddy'
+  'auth_url': '',
+  'stk_ai_url': '',
+  'client_id': '', 
+  'client_key': '',
+  'ks_slug_openapi': '',
+  'ks_slug_custom': ''
 }
 
 def is_token_expired():
@@ -77,19 +77,38 @@ def send_file_to_aws(file_name, file_path, form_data):
     print(f"Erro ao enviar o arquivo '{file_name}'\nStatus Code: {response.status_code}\nBody:\n{response.text}")
     exit(-1)
 
-def get_upload_file_status(file_id):
+import time
+
+def get_upload_file_status(file_id, file_name):
   token = access_token['token']
   headers = {
     'Authorization': f'Bearer {token}'
   }
 
-  response = requests.request('GET', f"{options['stk_ai_url']}/v1/file-upload/{file_id}", headers=headers, data={})
+  max_attempts = 10
+  attempts = 0
 
-  if response.status_code != 200:
-    print(f'Erro ao recuperar o arquivo {file_id}!!\nStatus Code: {response.status_code}\nBody:\n{response.text}')
-    exit(-1)
-  else:
-    return response.json()
+  while attempts < max_attempts:
+    response = requests.request('GET', f"{options['stk_ai_url']}/v1/file-upload/{file_id}", headers=headers, data={})
+
+    if response.status_code != 200:
+      print(f'Erro ao recuperar o arquivo {file_name}!!\nStatus Code: {response.status_code}\nBody:\n{response.text}')
+      return None
+    
+    status = response.json().get('status')
+    
+    if status not in ['NEW', 'ERROR']:
+      return response.json()
+    elif status == 'ERROR':
+      print(f'Erro ao processar o arquivo {file_name}!!\nErro: {response.json().get('error_description', '')}')
+      return None
+
+    # Incrementa o número de tentativas e espera 1 segundo antes de tentar novamente
+    attempts += 1
+    time.sleep(5)
+
+  print(f'Número máximo de tentativas atingido para o arquivo {file_name}.')
+  return None
 
 def send_custom_ks(file_path, file_type):
   token = access_token['token']
@@ -118,7 +137,7 @@ def process_directory(directory, type):
       file_path = os.path.join(root, file)
       form_data = get_upload_file_form_data(file, type)
       send_file_to_aws(file, file_path, form_data)
-      get_upload_file_status(form_data['id'])
+      get_upload_file_status(form_data['id'], file)
 
 def load_options_file(options_file):
   global options

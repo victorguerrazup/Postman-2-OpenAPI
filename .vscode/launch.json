@@ -11,6 +11,14 @@
       "program": "Postman2Openapi.py",
       "console": "integratedTerminal",
       "args": ["-d", "~/projects/claro-flex-collections"]
+    },
+    {
+      "name": "SendKO",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "SendKO.py",
+      "console": "integratedTerminal",
+      "args": ["-o", "opt.json", "-i", "~/projects/claro-flex-collections"]
     }
   ]
 }
