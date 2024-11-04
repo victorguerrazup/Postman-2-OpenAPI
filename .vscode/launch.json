@@ -10,7 +10,7 @@
       "request": "launch",
       "program": "Postman2Openapi.py",
       "console": "integratedTerminal",
-      "args": ["-d", "~/projects/claro-flex-collections"]
+      "args": ["-d", "~/projects/claro-flex-collections", "-v"]
     },
     {
       "name": "SendKO",

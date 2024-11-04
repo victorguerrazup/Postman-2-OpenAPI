@@ -4,6 +4,8 @@ import glob
 import re
 import copy
 import argparse
+import sys
+from tqdm import tqdm
 
 # Dicionário para armazenar variáveis de ambiente
 environment_variables = {}
@@ -100,6 +102,14 @@ openapi_template = {
   }
 }
 
+validation_errors = {}
+processing_errors = {}
+ignored_collections = []
+processed_collections = []
+validated_collections = []
+
+collection_name = ''
+
 ignore_str = 'p2o_ignore'
 
 # Dicionário para armazenar hosts, variáveis e descrição de coleção
@@ -107,6 +117,16 @@ hosts = {}
 apis = {}
 collection_variables = {}
 collection_descriptions = {}
+
+def add_validation_error(collection, error):
+  if validation_errors.get(collection) is None:
+    validation_errors[collection] = []
+  validation_errors[collection].append(error)
+  
+def add_processing_error(collection, error):
+  if processing_errors.get(collection) is None:
+    processing_errors[collection] = []
+  processing_errors[collection].append(error)
 
 # Função para obter arquivos com base em um filtro e diretório
 def get_files(folder, filter='/*.json'):
@@ -118,7 +138,7 @@ def read_environment_variables(environments_dir, environments_filter):
   if not env_files:
     print('Nenhum arquivo de environment encontrado no diretório.')
     return
-  for env_file in env_files:
+  for env_file in tqdm(env_files, desc="Processando variáveis de ambiente", unit=" arquivo", file=sys.stdout):
     with open(env_file, 'r') as file:
       json_content = json.load(file)
       name = re.sub(r'[\s-]+', '_', json_content['name'])
@@ -126,37 +146,58 @@ def read_environment_variables(environments_dir, environments_filter):
         for variable in json_content['values']:
           key = variable['key']
           environment_variables.setdefault(key, {})[name] = variable['value']
-      else:
-        print("A chave 'values' não foi encontrada no JSON.")
 
 # Função para ler arquivos de coleção Postman
-def read_collection_files(collections_dir, collections_filter):
+def read_collection_files(collections_dir, collections_filter, validate = False, process = False):
   collection_files = get_files(collections_dir, collections_filter)
   if not collection_files:
     print('Nenhum arquivo de collection encontrado no diretório.')
     return
-  for collection_file in collection_files:
+  for collection_file in tqdm(collection_files, desc="Processando collections", unit=" arquivo", file=sys.stdout):
     with open(collection_file, 'r') as file:
       collection_content = json.loads(file.read().replace('{{', '{').replace('}}', '}'))
-      collection_variables.clear()
-      if 'p2o_ignore' in  collection_content['info'].get('description', '').lower():
-        print(f'Collection ignorada: {collection_file}')
-      else:
-        collection_descriptions[collection_content['info']['name']] = collection_content['info'].get('description', '')
-      for var in collection_content.get('variable', []):
-        collection_variables[var['key']] = var['value']
-      process_items(collection_content['item'])
+      collection_name = collection_content.get('info', {}).get('name',  os.path.basename(collection_file))
+      if ignore_str in  collection_content['info'].get('description', '').lower():
+        ignored_collections.append(collection_name)
+        continue
+      process_collection_variables(collection_content, validate)
+      if validate:
+        validate_collection(collection_content)
+        validated_collections.append(collection_name)
+      if process:
+        process_collection(collection_content)
+        processed_collections.append(collection_name)
 
+def process_collection_variables(collection_content, validate = False):
+  collection_variables.clear()
+  for var in collection_content.get('variable', []):
+    if validate:
+      if str(var.get('value', '')).strip() == '':
+        add_validation_error(collection_name, f'Variável \'{var["key"]}\' não possui valor inicial')
+    collection_variables[var['key']] = var['value']
+
+def validate_collection(collection_content):
+  if collection_content['info'].get('description', '').replace(ignore_str, '') == '':
+    add_validation_error(collection_name, 'Collection sem descrição')
+  validate_items(collection_content['item'])
+  
+def validate_items(items):
+  pass
+
+def process_collection(collection_content):
+  collection_descriptions[collection_name] = collection_content['info'].get('description', '').replace(ignore_str, '')
+  process_items(collection_content['item'])
+  
 # Função para processar os itens da coleção
 def process_items(items):
   for item in items:
-    if 'p2o_ignore' in item.get('description', ''):
+    if ignore_str in item.get('description', ''):
       continue
     if 'item' in item:
       process_items(item['item'])
     if 'request' not in item:
       continue
-    if 'p2o_ignore' in item['request'].get('description', ''):
+    if ignore_str in item['request'].get('description', ''):
       continue
     current_api = item['request']['url']['path'][0]
     path = '/' + '/'.join(item['request']['url']['path'])
@@ -452,6 +493,9 @@ if __name__ == '__main__':
   parser.add_argument('-cd','--coll_dir', type=str, required=False, help='Diretório dos arquivos de coleção')
   parser.add_argument('-cf','--coll_filter', type=str, required=False, default='/*postman_collection.json', help='Filtro dos arquivos de coleção')
   parser.add_argument('-o', '--output', type=str, required=False, help='Diretório de saída para os arquivos gerados')
+  parser.add_argument('-p', '--process', action='store_true', help='Indica que os arquivos devem ser processados (convertidos)')
+  parser.add_argument('-v', '--validate', action='store_true', help='Indica que os arquivos devem ser validados')
+  parser.add_argument('-V', '--verbose', action='store_true', help='Indica que a saída será completa')
   
   # Parseando os argumentos
   args = parser.parse_args()
@@ -462,7 +506,7 @@ if __name__ == '__main__':
   
   # Leitura de variáveis de ambiente e arquivos de coleção
   read_environment_variables(env_dir, args.env_filter)
-  read_collection_files(coll_dir, args.coll_filter)
+  read_collection_files(coll_dir, args.coll_filter, args.validate, args.process)
 
   # Criação dos diretórios 'openapi' e 'custom' e salvamento dos arquivos JSON e TXT
   openapi_dir = os.path.join(output, 'openapi')
@@ -478,3 +522,48 @@ if __name__ == '__main__':
   for coll in collection_descriptions:
     with open(os.path.join(custom_dir, f'{coll.replace('/', '|')}.txt'), 'w') as file:
       file.writelines(collection_descriptions[coll])
+
+  if args.verbose:
+    if ignored_collections:
+      print('\n== Collections ignoradas ==')
+      for coll in ignored_collections:
+        print(f'- {coll}')
+      
+    if args.validate:
+      print('\n== Collections Validadas ==')
+      for coll in validated_collections:
+        print(f'- {coll}')
+        
+    if validation_errors:
+      print('\n== Erros de Validação ==')
+      for key in validation_errors:
+        print(f'- {key}')
+        for error in validation_errors[key]:
+          print(f'  - {error}')
+      
+    if args.process:
+      print('\n== Collections Processadas ==')
+      for coll in processed_collections:
+        print(f'- {coll}')
+        
+    if processing_errors:
+      print('\n== Erros de Validação ==')
+      for key in processing_errors:
+        print(f'- {key}')
+        for error in processing_errors[key]:
+          print(f'  - {error}')
+  else:
+    if ignored_collections:
+      print(f'Collections Ignoradas: {len(ignored_collections)}')
+      
+    if args.validate:
+      print(f'Collections Validadas: {len(validated_collections)}')
+        
+    if validation_errors:
+      print(f'Erros de Validação: {len(validation_errors)}')
+      
+    if args.process:
+      print(f'Collections Processadas: {len(processed_collections)}')
+        
+    if processing_errors:
+      print(f'Erros de Processamento: {len(processing_errors)}')
