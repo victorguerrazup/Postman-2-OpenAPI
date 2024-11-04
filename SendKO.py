@@ -160,7 +160,7 @@ if __name__ == '__main__':
   parser.add_argument('-ck', '--client_key', type=str, required=False, help='Client Key para autenticação no Stackspot')
   parser.add_argument('--ks_openapi', type=str, required=False, help='Slug do knowledge source para envio dos arquivos OpenAPI')
   parser.add_argument('--ks_custom', type=str, required=False, help='Slug do knowledge source para envio dos arquivos Custom')
-  parser.add_argument('-o', '--options', type=str, required=False, help='Arquivo de opções no formato JSON')
+  parser.add_argument('-o', '--options', type=str, required=True, help='Arquivo de opções no formato JSON')
   parser.add_argument('-i', '--input', type=str, required=False, default=os.getcwd(), help='Diretório de entrada com os arquivos OpenAPI e Custom')
   
   # Parseando os argumentos
