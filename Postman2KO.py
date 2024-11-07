@@ -110,7 +110,7 @@ validated_collections = []
 
 actual_collection_name = ''
 
-ignore_str = 'p2o_ignore'
+ignore_str = 'p2k_ignore'
 
 # Dicionário para armazenar hosts, variáveis e descrição de coleção
 hosts = {}
