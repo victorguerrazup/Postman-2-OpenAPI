@@ -3,6 +3,8 @@ import requests
 import json
 import argparse
 import time
+import sys
+from tqdm import tqdm
 
 access_token = {'token': '', 'expiry': 1728443196}
 
@@ -14,6 +16,8 @@ options = {
   'ks_slug_openapi': '',
   'ks_slug_custom': ''
 }
+
+files_to_upload = []
 
 def is_token_expired():
   if 'expiry' not in access_token:
@@ -77,8 +81,6 @@ def send_file_to_aws(file_name, file_path, form_data):
     print(f"Erro ao enviar o arquivo '{file_name}'\nStatus Code: {response.status_code}\nBody:\n{response.text}")
     exit(-1)
 
-import time
-
 def get_upload_file_status(file_id, file_name):
   token = access_token['token']
   headers = {
@@ -127,17 +129,22 @@ def send_custom_ks(file_path, file_type):
   if response.status_code != 204:
     print(f'Erro ao recuperar Form Data para o arquivo {file_path}!!\nStatus Code: {response.status_code}\nBody:\n{response.text}')
     exit(-1)
-  
-# Função para ler e fazer upload dos arquivos de um diretório
-def process_directory(directory, type):
+
+def load_files(directory):
   for root, dirs, files in os.walk(directory):
     for dir in dirs:
-      process_directory(os.path.join(root, dir), type)
+      load_files(os.path.join(root, dir))
     for file in files:
-      file_path = os.path.join(root, file)
-      form_data = get_upload_file_form_data(file, type)
-      send_file_to_aws(file, file_path, form_data)
-      get_upload_file_status(form_data['id'], file)
+      files_to_upload.append({'name': file, 'path': os.path.join(root, file)})
+      
+# Função para ler e fazer upload dos arquivos de um diretório
+def process_directory(directory, type):
+  load_files(directory)
+  for file in tqdm(files_to_upload, desc=f"Processando diretório '{type}'", unit=" arquivo", file=sys.stdout):
+    file_path = file['path']
+    form_data = get_upload_file_form_data(file['name'], type)
+    send_file_to_aws(file['name'], file_path, form_data)
+    get_upload_file_status(form_data['id'], file['name'])
 
 def load_options_file(options_file):
   global options
@@ -153,7 +160,7 @@ if __name__ == '__main__':
   parser.add_argument('-ck', '--client_key', type=str, required=False, help='Client Key para autenticação no Stackspot')
   parser.add_argument('--ks_openapi', type=str, required=False, help='Slug do knowledge source para envio dos arquivos OpenAPI')
   parser.add_argument('--ks_custom', type=str, required=False, help='Slug do knowledge source para envio dos arquivos Custom')
-  parser.add_argument('-o', '--options', type=str, required=False, help='Arquivo de opções no formato JSON')
+  parser.add_argument('-o', '--options', type=str, required=True, help='Arquivo de opções no formato JSON')
   parser.add_argument('-i', '--input', type=str, required=False, default=os.getcwd(), help='Diretório de entrada com os arquivos OpenAPI e Custom')
   
   # Parseando os argumentos
