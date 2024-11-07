@@ -111,6 +111,7 @@ validated_collections = []
 actual_collection_name = ''
 
 ignore_str = 'p2k_ignore'
+wip_str = 'p2k_wip'
 
 # Dicionário para armazenar hosts, variáveis e descrição de coleção
 hosts = {}
@@ -158,7 +159,8 @@ def read_collection_files(collections_dir, collections_filter, validate = False,
       global actual_collection_name
       collection_content = json.loads(file.read().replace('{{', '{').replace('}}', '}'))
       actual_collection_name = collection_content.get('info', {'name': None}).get('name',  os.path.basename(collection_file))
-      if ignore_str in  collection_content['info'].get('description', '').lower():
+      collection_description = collection_content['info'].get('description', '')
+      if ignore_str in collection_description.lower() or wip_str in collection_description:
         ignored_collections.append(actual_collection_name)
         continue
       process_collection_variables(collection_content, validate)
@@ -178,7 +180,7 @@ def process_collection_variables(collection_content, validate = False):
     collection_variables[var['key']] = var['value']
 
 def validate_collection(collection_content):
-  if collection_content['info'].get('description', '').replace(ignore_str, '') == '':
+  if collection_content['info'].get('description', ''):
     add_validation_error(actual_collection_name, 'Collection sem descrição.')
   else:
     if '# Descrição' not in collection_content['info'].get('description', '').lower():
@@ -193,33 +195,33 @@ def validate_collection(collection_content):
   
 def validate_items(items):
   for item in items:
-    if ignore_str in item.get('description', ''):
+    if ignore_str in item.get('description', '') or wip_str in item.get('description', ''):
       continue
     if 'request' not in item:
-      if item.get('description', '').replace(ignore_str, '') == '':
+      if item.get('description', '') == '':
         add_validation_error(item['name'], 'Pasta sem descrição.')
       continue
     if 'item' in item:
       validate_items(item['item'])
-    if ignore_str in item['request'].get('description', ''):
+    if ignore_str in item['request'].get('description', '') or wip_str in item['request'].get('description', ''):
       continue
-    if item['request'].get('description', '').replace(ignore_str, '') == '':
+    if item['request'].get('description', '') == '':
       add_validation_error(item['name'], 'Request sem descrição.')
     
 def process_collection(collection_content):
-  collection_descriptions[actual_collection_name] = collection_content['info'].get('description', '').replace(ignore_str, '')
+  collection_descriptions[actual_collection_name] = collection_content['info'].get('description', '').replace(ignore_str, '').replace(wip_str, '')
   process_items(collection_content['item'])
   
 # Função para processar os itens da coleção
 def process_items(items):
   for item in items:
-    if ignore_str in item.get('description', ''):
+    if ignore_str in item.get('description', '') or wip_str in item.get('description', ''):
       continue
     if 'item' in item:
       process_items(item['item'])
     if 'request' not in item:
       continue
-    if ignore_str in item['request'].get('description', ''):
+    if ignore_str in item['request'].get('description', '') or wip_str in item['request'].get('description', ''):
       continue
     current_api = item['request']['url']['path'][0]
     path = '/' + '/'.join(item['request']['url']['path'])
