@@ -5,12 +5,12 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Postman2Openapi",
+      "name": "Postman2KO",
       "type": "debugpy",
       "request": "launch",
-      "program": "Postman2Openapi.py",
+      "program": "Postman2KO.py",
       "console": "integratedTerminal",
-      "args": ["-d", "~/projects/claro-flex-collections", "-vV"]
+      "args": ["-d", "~/projects/claro-flex-collections", "-v"]
     },
     {
       "name": "SendKO",
