@@ -102,28 +102,51 @@ openapi_template = {
   }
 }
 
+# Dicionário para armazenar erros de validação encontrados durante o processamento das collections.
 validation_errors = {}
+
+# Dicionário para armazenar erros de processamento encontrados durante a conversão das collections.
 processing_errors = {}
+
+# Lista para armazenar o nome das collections que foram ignoradas (por exemplo, aquelas marcadas com 'p2k_ignore').
 ignored_collections = []
+
+# Lista para armazenar o nome das collections que foram processadas com sucesso.
 processed_collections = []
+
+# Lista para armazenar o nome das collections que foram validadas com sucesso.
 validated_collections = []
 
+# Variável global para armazenar o nome da collection que está sendo processada no momento.
 actual_collection_name = ''
 
+# String usada para identificar collections que devem ser ignoradas durante o processamento.
 ignore_str = 'p2k_ignore'
+
+# String usada para identificar collections que estão em andamento (work in progress) e podem ser ignoradas.
 wip_str = 'p2k_wip'
 
-# Dicionário para armazenar hosts, variáveis e descrição de coleção
+# Dicionário para armazenar informações sobre hosts utilizados nas collections.
 hosts = {}
+
+# Dicionário para armazenar as APIs extraídas das collections.
 apis = {}
+
+# Dicionário para armazenar as variáveis definidas nas collections.
 collection_variables = {}
+
+# Dicionário para armazenar as descrições das collections.
 collection_descriptions = {}
 
+# Função para adicionar um erro de validação a uma collection específica.
+# Se a collection ainda não tiver erros registrados, cria uma nova lista para armazená-los.
 def add_validation_error(collection, error):
   if validation_errors.get(collection) is None:
     validation_errors[collection] = []
   validation_errors[collection].append(error)
-  
+
+# Função para adicionar um erro de processamento a uma collection específica.
+# Se a collection ainda não tiver erros registrados, cria uma nova lista para armazená-los.
 def add_processing_error(collection, error):
   if processing_errors.get(collection) is None:
     processing_errors[collection] = []
@@ -133,128 +156,215 @@ def add_processing_error(collection, error):
 def get_files(folder, filter='/*.json'):
   return glob.glob(f'{folder}{filter}')
 
+# Função auxiliar para processar o conteúdo de um arquivo de variáveis de ambiente
+def process_environment_file(env_file):
+  with open(env_file, 'r') as file:
+    json_content = json.load(file)
+    name = re.sub(r'[\s-]+', '_', json_content['name'])
+    if 'values' in json_content:
+      process_environment_values(json_content['values'], name)
+
+# Função auxiliar para processar as variáveis de ambiente
+def process_environment_values(values, name):
+  for variable in values:
+    key = variable['key']
+    environment_variables.setdefault(key, {})[name] = variable['value']
+
 # Função para ler variáveis de ambiente de arquivos JSON
-def read_environment_variables(environments_dir, environments_filter):
-  env_files = get_files(environments_dir, environments_filter)
+def read_environment_variables(environments_dir):
+  env_files = get_files(environments_dir, args.env_filter)
   if not env_files:
     print('Nenhum arquivo de environment encontrado no diretório.')
     return
   for env_file in tqdm(env_files, desc="Processando variáveis de ambiente", unit=" arquivo", file=sys.stdout):
-    with open(env_file, 'r') as file:
-      json_content = json.load(file)
-      name = re.sub(r'[\s-]+', '_', json_content['name'])
-      if 'values' in json_content:
-        for variable in json_content['values']:
-          key = variable['key']
-          environment_variables.setdefault(key, {})[name] = variable['value']
+    process_environment_file(env_file)
+
+# Função auxiliar para processar o conteúdo de um arquivo de coleção
+def process_collection_file(collection_file):
+  with open(collection_file, 'r') as file:
+    collection_content = json.loads(file.read().replace('{{', '{').replace('}}', '}'))
+  return collection_content
+
+# Função auxiliar para verificar se a coleção deve ser ignorada
+def should_ignore_collection(collection_description):
+  return ignore_str in collection_description.lower() or wip_str in collection_description
+
+# Função auxiliar para processar uma coleção
+def process_collection_data(collection_content):
+  process_collection_variables(collection_content)
+  if args.validate:
+    validate_collection(collection_content)
+    validated_collections.append(actual_collection_name)
+  if args.process:
+    process_collection(collection_content)
+    processed_collections.append(actual_collection_name)
 
 # Função para ler arquivos de coleção Postman
-def read_collection_files(collections_dir, collections_filter, validate = False, process = False):
-  collection_files = get_files(collections_dir, collections_filter)
+def read_collection_files(collections_dir):
+  collection_files = get_files(collections_dir, args.coll_filter)
   if not collection_files:
     print('Nenhum arquivo de collection encontrado no diretório.')
     return
-  for collection_file in tqdm(collection_files, desc="Processando collections", unit=" arquivo", file=sys.stdout):
-    with open(collection_file, 'r') as file:
-      global actual_collection_name
-      collection_content = json.loads(file.read().replace('{{', '{').replace('}}', '}'))
-      actual_collection_name = collection_content.get('info', {'name': None}).get('name',  os.path.basename(collection_file))
-      collection_description = collection_content['info'].get('description', '')
-      if ignore_str in collection_description.lower() or wip_str in collection_description:
-        ignored_collections.append(actual_collection_name)
-        continue
-      process_collection_variables(collection_content, validate)
-      if validate:
-        validate_collection(collection_content)
-        validated_collections.append(actual_collection_name)
-      if process:
-        process_collection(collection_content)
-        processed_collections.append(actual_collection_name)
 
-def process_collection_variables(collection_content, validate = False):
+  for collection_file in tqdm(collection_files, desc="Processando collections", unit=" arquivo", file=sys.stdout):
+    collection_content = process_collection_file(collection_file)
+    global actual_collection_name
+    actual_collection_name = collection_content.get('info', {'name': None}).get('name', os.path.basename(collection_file))
+    collection_description = collection_content['info'].get('description', '')
+
+    if should_ignore_collection(collection_description):
+      ignored_collections.append(actual_collection_name)
+      continue
+
+    process_collection_data(collection_content)
+
+# Função para processar as variáveis de uma coleção
+# Se a validação estiver ativada, verifica se as variáveis possuem valores iniciais.
+def process_collection_variables(collection_content):
+  # Limpa o dicionário de variáveis da coleção antes de processar uma nova coleção
   collection_variables.clear()
+  
+  # Itera sobre as variáveis definidas na coleção
   for var in collection_content.get('variable', []):
-    if validate:
+    # Se a validação estiver ativada, verifica se a variável tem um valor inicial
+    if args.validate:
       if str(var.get('value', '')).strip() == '':
+        # Adiciona um erro de validação se a variável não tiver valor inicial
         add_validation_error(actual_collection_name, f'Variável \'{var["key"]}\' não possui valor inicial')
+    
+    # Armazena a variável e seu valor no dicionário de variáveis da coleção
     collection_variables[var['key']] = var['value']
 
+# Função para validar a estrutura e conteúdo de uma coleção
+# Verifica se a descrição da coleção contém os títulos obrigatórios.
 def validate_collection(collection_content):
-  if collection_content['info'].get('description', ''):
+  # Verifica se a coleção tem uma descrição
+  if collection_content['info'].get('description', '') == '':
+    # Adiciona um erro de validação se a coleção não tiver descrição
     add_validation_error(actual_collection_name, 'Collection sem descrição.')
   else:
+    # Verifica se a descrição contém os títulos obrigatórios
     if '# Descrição' not in collection_content['info'].get('description', '').lower():
       add_validation_error(actual_collection_name, "Título 'Descrição' ausente.")
     if '# Pré Requisitos' not in collection_content['info'].get('description', '').lower():
       add_validation_error(actual_collection_name, "Título 'Pré Requisitos' ausente.")
     if '# Passo a Passo' not in collection_content['info'].get('description', '').lower():
-      add_validation_error(actual_collection_name, "Título 'Passo a Passo' ausente.")
+        add_validation_error(actual_collection_name, "Título 'Passo a Passo' ausente.")
     if '# Versionamento' not in collection_content['info'].get('description', '').lower():
-      add_validation_error(actual_collection_name, "Título 'Versionamento' ausente.")
+        add_validation_error(actual_collection_name, "Título 'Versionamento' ausente.")
+    
+  # Valida os itens (requests e pastas) dentro da coleção
   validate_items(collection_content['item'])
-  
+
+# Função para validar os itens (requests e pastas) dentro de uma coleção
+# Verifica se cada item tem uma descrição e se deve ser ignorado.
 def validate_items(items):
+  # Itera sobre os itens da coleção
   for item in items:
+    # Ignora itens que contenham as strings de ignorar ou WIP (work in progress) na descrição
     if ignore_str in item.get('description', '') or wip_str in item.get('description', ''):
       continue
+    
+    # Se o item não for uma request, verifica se é uma pasta e se tem descrição
     if 'request' not in item:
       if item.get('description', '') == '':
+        # Adiciona um erro de validação se a pasta não tiver descrição
         add_validation_error(item['name'], 'Pasta sem descrição.')
       continue
+    
+    # Se o item contiver sub-itens (outras requests ou pastas), valida recursivamente
     if 'item' in item:
       validate_items(item['item'])
+    
+    # Ignora requests que contenham as strings de ignorar ou WIP na descrição
     if ignore_str in item['request'].get('description', '') or wip_str in item['request'].get('description', ''):
       continue
+    
+    # Adiciona um erro de validação se a request não tiver descrição
     if item['request'].get('description', '') == '':
       add_validation_error(item['name'], 'Request sem descrição.')
-    
+
+# Função para processar uma coleção
+# Remove as strings de ignorar e WIP da descrição e processa os itens da coleção.
 def process_collection(collection_content):
-  collection_descriptions[actual_collection_name] = collection_content['info'].get('description', '').replace(ignore_str, '').replace(wip_str, '')
-  process_items(collection_content['item'])
+  # Armazena a descrição da coleção, removendo as strings de ignorar e WIP
+  if args.doc:
+    collection_descriptions[actual_collection_name] = collection_content['info'].get('description', '').replace(ignore_str, '').replace(wip_str, '')
+  
+  if args.openapi:
+    # Processa os itens (requests e pastas) dentro da coleção
+    process_items(collection_content['item'])
   
 # Função para processar os itens da coleção
 def process_items(items):
   for item in items:
-    if ignore_str in item.get('description', '') or wip_str in item.get('description', ''):
+    if should_ignore_item(item):
       continue
+
     if 'item' in item:
       process_items(item['item'])
+
     if 'request' not in item:
       continue
-    if ignore_str in item['request'].get('description', '') or wip_str in item['request'].get('description', ''):
+
+    if should_ignore_request(item['request']):
       continue
-    current_api = item['request']['url']['path'][0]
-    path = '/' + '/'.join(item['request']['url']['path'])
-    method = item['request']['method'].lower()
-    current_host = '.'.join(item['request']['url']['host'])
-      
-    # Verifica se o caminho e método já existem
-    if current_api not in apis:
-      apis[current_api] = copy.deepcopy(openapi_template)
-    exists_path_api = apis[current_api]['paths'].get(path) is not None
-    exists_path_api_method = apis[current_api]['paths'].get(path, {}).get('method') is not None
-    if not exists_path_api:
-      apis[current_api]['paths'][path] = {}
-    if not exists_path_api_method:
-      apis[current_api]['paths'][path][method] = {
-        'summary': item['name'],
-        'description': item['request'].get('description', ''),
-        'parameters': [],
-        'responses': {}
-      }
-      
+
+    current_api, path, method, current_host = extract_request_info(item['request'])
+
+    initialize_api_path(current_api, path, method, item)
+
     process_servers(current_host, item['request']['url'].get('protocol', None), current_api)
 
     components_in_openapi = apis[current_api]['components']
     method_in_openapi = apis[current_api]['paths'][path][method]
-    
+
     # Processa autenticação, cabeçalhos, parâmetros de URL e corpo da requisição
-    process_auth(item['request'].get('auth', {}).get('type', '').lower(), components_in_openapi, method_in_openapi)
-    process_headers(item['request'].get('header', []), components_in_openapi, method_in_openapi)
-    process_url_parameters(item['request']['url'].get('variable', []), method_in_openapi)
-    process_query_parameters(item['request']['url'].get('query', []), method_in_openapi)
-    process_request_body(item['request'].get('body'), item['request']['header'], method_in_openapi)
+    process_request_details(item['request'], components_in_openapi, method_in_openapi)
     process_responses(item.get('response', []), method_in_openapi['responses'])
+
+# Função auxiliar para verificar se o item deve ser ignorado
+def should_ignore_item(item):
+  return ignore_str in item.get('description', '') or wip_str in item.get('description', '')
+
+# Função auxiliar para verificar se a requisição deve ser ignorada
+def should_ignore_request(request):
+  return ignore_str in request.get('description', '') or wip_str in request.get('description', '')
+
+# Função auxiliar para extrair informações da requisição
+def extract_request_info(request):
+  current_api = request['url']['path'][0]
+  path = '/' + '/'.join(request['url']['path'])
+  method = request['method'].lower()
+  current_host = '.'.join(request['url']['host'])
+  return current_api, path, method, current_host
+
+# Função auxiliar para inicializar o caminho da API
+def initialize_api_path(current_api, path, method, item):
+  if current_api not in apis:
+    apis[current_api] = copy.deepcopy(openapi_template)
+
+  exists_path_api = apis[current_api]['paths'].get(path) is not None
+  exists_path_api_method = apis[current_api]['paths'].get(path, {}).get(method) is not None
+
+  if not exists_path_api:
+    apis[current_api]['paths'][path] = {}
+
+  if not exists_path_api_method:
+    apis[current_api]['paths'][path][method] = {
+      'summary': item['name'],
+      'description': item['request'].get('description', ''),
+      'parameters': [],
+      'responses': {}
+    }
+
+# Função auxiliar para processar detalhes da requisição
+def process_request_details(request, components_in_openapi, method_in_openapi):
+  process_auth(request.get('auth', {}).get('type', '').lower(), components_in_openapi, method_in_openapi)
+  process_headers(request.get('header', []), components_in_openapi, method_in_openapi)
+  process_url_parameters(request['url'].get('variable', []), method_in_openapi)
+  process_query_parameters(request['url'].get('query', []), method_in_openapi)
+  process_request_body(request.get('body'), request.get('header'), method_in_openapi)
 
 # Função para processar os servidores
 def process_servers(host, protocol, api = None):
@@ -506,6 +616,20 @@ def replace_variables(text):
 def process_variable_name(variable):
   return variable.replace('{', '').replace('}', '')
 
+#Função para limpar o conteúdo de um diretório, removendo arquivos, links simbólicos e diretórios vazios.
+def clean_dir(dir):
+  for file_name in os.listdir(dir):
+    file_path = os.path.join(dir, file_name)
+    try:
+      if os.path.isfile(file_path) or os.path.islink(file_path):
+        os.unlink(file_path)  # Remove arquivos ou links simbólicos
+      elif os.path.isdir(file_path):
+        clean_dir(file_path)
+        if len(os.listdir(file_path)) == 0:
+          os.rmdir(file_path)  # Remove diretórios vazios
+    except Exception as e:
+      print(f'Erro ao deletar {file_path}. Motivo: {e}')
+
 if __name__ == '__main__':
    # Criando o parser de argumentos
   parser = argparse.ArgumentParser(description='Converte collections do Postman em esquemas OpenAPI')
@@ -520,6 +644,8 @@ if __name__ == '__main__':
   parser.add_argument('-p', '--process', action='store_true', help='Indica que os arquivos devem ser processados (convertidos)')
   parser.add_argument('-v', '--validate', action='store_true', help='Indica que os arquivos devem ser validados')
   parser.add_argument('-V', '--verbose', action='store_true', help='Indica que a saída será completa')
+  parser.add_argument('-O', '--openapi', action='store_true', help='Indica que serão gerados arquivos no formato OpenAPI')
+  parser.add_argument('-D', '--doc', action='store_true', help='Indica que serão gerados arquivos de documentação')
   
   # Parseando os argumentos
   args = parser.parse_args()
@@ -528,10 +654,6 @@ if __name__ == '__main__':
   coll_dir = args.coll_dir if args.coll_dir is not None else args.dir
   output = args.output if args.output is not None else args.dir
   
-  # Leitura de variáveis de ambiente e arquivos de coleção
-  read_environment_variables(env_dir, args.env_filter)
-  read_collection_files(coll_dir, args.coll_filter, args.validate, args.process)
-
   # Criação dos diretórios 'openapi' e 'custom' e salvamento dos arquivos JSON e TXT
   openapi_dir = os.path.join(output, 'openapi')
   custom_dir = os.path.join(output, 'custom')
@@ -539,6 +661,14 @@ if __name__ == '__main__':
   os.makedirs(openapi_dir, exist_ok=True)
   os.makedirs(custom_dir, exist_ok=True)
   
+  clean_dir(openapi_dir)
+  clean_dir(custom_dir)
+  
+  # Leitura de variáveis de ambiente e arquivos de coleção
+  if args.openapi:
+    read_environment_variables(env_dir)
+  read_collection_files(coll_dir)
+
   for api in apis:
     with open(os.path.join(openapi_dir, f'{process_variable_name(api)}.json'), 'w') as file:
       json.dump(apis[api], file, indent=2)
