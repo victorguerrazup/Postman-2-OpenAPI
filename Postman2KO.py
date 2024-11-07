@@ -210,6 +210,7 @@ def read_collection_files(collections_dir):
     collection_content = process_collection_file(collection_file)
     global actual_collection_name
     actual_collection_name = collection_content.get('info', {'name': None}).get('name', os.path.basename(collection_file))
+    actual_collection_name = re.sub(r'^[a-zA-Z0-9]{2,}\s-\s', '', actual_collection_name)
     collection_description = collection_content['info'].get('description', '')
 
     if should_ignore_collection(collection_description):
@@ -604,7 +605,7 @@ def replace_variables(text):
     for variable in variables:
       processed_variable = process_variable_name(variable)
       if processed_variable in collection_variables:
-        value = collection_variables.get(processed_variable, '')
+        value = collection_variables.get(processed_variable, '0')
         processed_text = processed_text.replace(f'"{variable}"', f'"{value}"')
         processed_text = processed_text.replace(variable, str(value) if value != '' else '0')
       elif processed_variable in environment_variables:
