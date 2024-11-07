@@ -108,7 +108,7 @@ ignored_collections = []
 processed_collections = []
 validated_collections = []
 
-collection_name = ''
+actual_collection_name = ''
 
 ignore_str = 'p2o_ignore'
 
@@ -155,37 +155,59 @@ def read_collection_files(collections_dir, collections_filter, validate = False,
     return
   for collection_file in tqdm(collection_files, desc="Processando collections", unit=" arquivo", file=sys.stdout):
     with open(collection_file, 'r') as file:
+      global actual_collection_name
       collection_content = json.loads(file.read().replace('{{', '{').replace('}}', '}'))
-      collection_name = collection_content.get('info', {}).get('name',  os.path.basename(collection_file))
+      actual_collection_name = collection_content.get('info', {'name': None}).get('name',  os.path.basename(collection_file))
       if ignore_str in  collection_content['info'].get('description', '').lower():
-        ignored_collections.append(collection_name)
+        ignored_collections.append(actual_collection_name)
         continue
       process_collection_variables(collection_content, validate)
       if validate:
         validate_collection(collection_content)
-        validated_collections.append(collection_name)
+        validated_collections.append(actual_collection_name)
       if process:
         process_collection(collection_content)
-        processed_collections.append(collection_name)
+        processed_collections.append(actual_collection_name)
 
 def process_collection_variables(collection_content, validate = False):
   collection_variables.clear()
   for var in collection_content.get('variable', []):
     if validate:
       if str(var.get('value', '')).strip() == '':
-        add_validation_error(collection_name, f'Variável \'{var["key"]}\' não possui valor inicial')
+        add_validation_error(actual_collection_name, f'Variável \'{var["key"]}\' não possui valor inicial')
     collection_variables[var['key']] = var['value']
 
 def validate_collection(collection_content):
   if collection_content['info'].get('description', '').replace(ignore_str, '') == '':
-    add_validation_error(collection_name, 'Collection sem descrição')
+    add_validation_error(actual_collection_name, 'Collection sem descrição.')
+  else:
+    if '# Descrição' not in collection_content['info'].get('description', '').lower():
+      add_validation_error(actual_collection_name, "Título 'Descrição' ausente.")
+    if '# Pré Requisitos' not in collection_content['info'].get('description', '').lower():
+      add_validation_error(actual_collection_name, "Título 'Pré Requisitos' ausente.")
+    if '# Passo a Passo' not in collection_content['info'].get('description', '').lower():
+      add_validation_error(actual_collection_name, "Título 'Passo a Passo' ausente.")
+    if '# Versionamento' not in collection_content['info'].get('description', '').lower():
+      add_validation_error(actual_collection_name, "Título 'Versionamento' ausente.")
   validate_items(collection_content['item'])
   
 def validate_items(items):
-  pass
-
+  for item in items:
+    if ignore_str in item.get('description', ''):
+      continue
+    if 'request' not in item:
+      if item.get('description', '').replace(ignore_str, '') == '':
+        add_validation_error(item['name'], 'Pasta sem descrição.')
+      continue
+    if 'item' in item:
+      validate_items(item['item'])
+    if ignore_str in item['request'].get('description', ''):
+      continue
+    if item['request'].get('description', '').replace(ignore_str, '') == '':
+      add_validation_error(item['name'], 'Request sem descrição.')
+    
 def process_collection(collection_content):
-  collection_descriptions[collection_name] = collection_content['info'].get('description', '').replace(ignore_str, '')
+  collection_descriptions[actual_collection_name] = collection_content['info'].get('description', '').replace(ignore_str, '')
   process_items(collection_content['item'])
   
 # Função para processar os itens da coleção
