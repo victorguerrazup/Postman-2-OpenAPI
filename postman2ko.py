@@ -812,15 +812,15 @@ def write_files(dir, files_dict, files_extension):
 
 if __name__ == '__main__':
    # Criando o parser de argumentos
-  parser = argparse.ArgumentParser(description='Converte collections do Postman em esquemas OpenAPI')
+  parser = argparse.ArgumentParser(description='Converte coleções do Postman em knowlwdge objects para o Stackspot AI')
   
   # Adicionando os argumentos
-  parser.add_argument('-d', '--dir', type=str, required=False, default=os.getcwd(), help='Diretório dos arquivos de variáveis de ambiente, de collections e output')
+  parser.add_argument('-d', '--dir', type=str, required=False, default=os.getcwd(), help='Diretório dos arquivos de variáveis globais e de ambiente, de coleções e dos arquivos de saída')
   parser.add_argument('-o', '--output', type=str, required=False, help='Diretório de saída para os arquivos gerados')
   parser.add_argument('-ef', '--env_filter', type=str, required=False, default='*postman_environment.json', help='Filtro dos arquivos de variáveis de ambiente')
-  parser.add_argument('-gf','--global_filter', type=str, required=False, default='*postman_globals.json', help='Filtro dos arquivos de variáeis globais')
+  parser.add_argument('-gf','--global_filter', type=str, required=False, default='*postman_globals.json', help='Filtro dos arquivos de variáveis globais')
   parser.add_argument('-cf','--coll_filter', type=str, required=False, default='*postman_collection.json', help='Filtro dos arquivos de coleção')
-  parser.add_argument('-p', '--process', action='store_true', help='Indica que os arquivos devem ser processados (convertidos)')
+  parser.add_argument('-p', '--process', action='store_true', help='Indica que os arquivos devem ser processados')
   parser.add_argument('-v', '--validate', action='store_true', help='Indica que os arquivos devem ser validados')
   parser.add_argument('-V', '--verbose', action='store_true', help='Indica que a saída será completa')
   parser.add_argument('-O', '--openapi', action='store_true', help='Indica que serão gerados arquivos no formato OpenAPI')

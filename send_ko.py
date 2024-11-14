@@ -155,7 +155,7 @@ def load_options_file(options_file):
     
 if __name__ == '__main__':
   # Criando o parser de argumentos
-  parser = argparse.ArgumentParser(description='Envia os esquemas no formato OpenAPI para o Stackspot AI')
+  parser = argparse.ArgumentParser(description='Envia os knowlwdge objects gerados para o Stackspot AI')
   
   # Adicionando os argumentos
   parser.add_argument('-ci', '--client_id', type=str, required=False, help='Client ID para autenticação no Stackspot')
