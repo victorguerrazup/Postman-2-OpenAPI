@@ -2,7 +2,7 @@
     <h1 align="center">Postman-2-Knowledge-Objects</h1>
     <p align="center">Funções para trnsformar coleções do Postman em documentação e disponibilizar através do <a href="https://ai.stackspot.com/">Stackspot AI</a>.</p>
 </p>
-<br><br><br>
+<br>
 
 ## Funções
 
