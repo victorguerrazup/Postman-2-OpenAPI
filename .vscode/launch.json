@@ -10,7 +10,7 @@
       "request": "launch",
       "program": "postman2ko.py",
       "console": "integratedTerminal",
-      "args": ["-d", "~/projects/claro-flex-collections", "-vVOD"]
+      "args": ["-d", "~/projects/claro-flex-collections", "-pvVOD"]
     },
     {
       "name": "send_ko",
