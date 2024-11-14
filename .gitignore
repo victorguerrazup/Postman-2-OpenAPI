@@ -1,6 +1,8 @@
 openapi
 custom
+venv
 .venv
 *.postman*.json
 options.json
 opt.json
+KO

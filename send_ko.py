@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import os
 import requests
 import json
@@ -166,19 +168,19 @@ if __name__ == '__main__':
   # Parseando os argumentos
   args = parser.parse_args()
   
-  if args.options != None:
+  if args.options:
     load_options_file(args.options)
   
-  if args.client_id != None:
+  if args.client_id:
     options['client_id'] = args.client_id
     
-  if args.client_key != None:
+  if args.client_key:
     options['client_key'] = args.client_key
     
-  if args.ks_openapi != None:
+  if args.ks_openapi:
     options['ks_slug_openapi'] = args.ks_openapi
     
-  if args.ks_custom != None:
+  if args.ks_custom:
     options['ks_slug_custom'] = args.ks_custom
    
   if is_token_expired():
