@@ -212,30 +212,6 @@ def clean_dir(dir):
     except Exception as e:
       print(f'Erro ao deletar {file_path}. Motivo: {e}')
 
-# Função para validar as coleções para gerar documentação
-def validate_doc():
-  for collection in tqdm(collections, desc='Validando documentação das coleções', unit=" arquivo", file=sys.stdout):
-    global actual_collection
-    with open(collection, 'r') as file:
-      collection_content = json.loads(file.read())
-    actual_collection = collection_content['info']['name']
-    collection_description = collection_content['info'].get('description', '')
-    if ignore_str in collection_description or wip_str in collection_description:
-      add_ignored_item('collections', actual_collection)
-      continue
-    if collection_description == '':
-      add_validation_error(actual_collection, 'Descrição vazia')
-    else:
-      # Verifica se a descrição contém os títulos obrigatórios
-      if '# Pré Requisitos' not in collection_content['info'].get('description', ''):
-        add_validation_error(actual_collection, "Título 'Pré Requisitos' ausente.")
-      if '# Passo a Passo' not in collection_content['info'].get('description', ''):
-          add_validation_error(actual_collection, "Título 'Passo a Passo' ausente.")
-      if '# Versionamento' not in collection_content['info'].get('description', ''):
-          add_validation_error(actual_collection, "Título 'Versionamento' ausente.")
-    if actual_collection not in validation_errors:
-      validated_collections['doc'].append(collection)
-
 # Função para validar as variáveis da coleção
 def validate_variables(scope):
   if scope == 'collection':
@@ -258,7 +234,7 @@ def validate_variables(scope):
   
 # Funçao para validar se as variáveis da requisição possuem valor inicial definido em algum escopo
 def validate_variables_in_requests_exists(item_content):
-  variables = re.findall(r'\{\{\w+\}\}', str(item_content))
+  variables = re.findall(r'\{\{\w+\}\}', str(item_content['request']))
   str('')
   for variable in map(lambda it: process_variable_name(it), list(set(variables))):
     if not get_variable_value(variable):
@@ -269,7 +245,36 @@ def validate_request_description(item_content):
   request_description = item_content['request'].get('description')
   if request_description == '':
     add_validation_error(actual_collection, f"Requisição '{item_content['name']}' sem descrição.")
-      
+   
+# Função para validar a existencia de variáveis
+def validate_variables_in_path(item_content):
+  for subpath in item_content['request']['url']['path']:
+    if re.search(r'\{\{\w+\}\}', subpath):
+      add_validation_error(actual_collection, f"Requisição '{item_content['name']}' contém variável no caminho.")
+
+# Função para validar o valor dos parâmetros de URL
+def validate_request_url_params(item_content):
+  for variable in item_content['request']['url'].get('variable', []):
+    if not variable.get('value'):
+      add_validation_error(actual_collection, f"Parâmetro de URL '{variable['key']}' da requisição '{item_content['name']}' está vazio.")
+
+# Função para validar o valor dos cabeçalhos da requisição
+def validate_request_headers(item_content):
+  for header in item_content['request'].get('header', []):
+    if not header.get('value'):
+      add_validation_error(actual_collection, f"Cabeçalho '{header['key']}' da requisição '{item_content['name']}' está vazio.")
+
+# Função para validar o valor dos parãmetros de consulta da requisição
+def validate_request_query_params(item_content):
+  for query in item_content['request']['url'].get('query', []):
+    if not query.get('value'):
+      add_validation_error(actual_collection, f"Parâmetro de consulta '{query['key']}' da requisição '{item_content['name']}' está vazio.")
+
+# Função para validar a existencia de exemplos de resposta
+def validate_responses(item_content):
+  if not item_content.get('response'):
+    add_validation_error(actual_collection, f"Requisição '{item_content['name']}' sem exemplos de resposta.")
+    
 # Função obter as requisições da coleção
 def get_requests(collection_content, validate = False, process = False):
   for item in collection_content.get('item', []):
@@ -297,10 +302,39 @@ def get_requests(collection_content, validate = False, process = False):
     if validate:
       validate_variables_in_requests_exists(item)
       validate_request_description(item)
+      validate_variables_in_path(item)
+      validate_request_url_params(item)
+      validate_request_headers(item)
+      validate_request_query_params(item)
+      validate_responses(item)
     if process:
       process_request(item)
       process_responses(item)
-      
+ 
+# Função para validar as coleções para gerar documentação
+def validate_doc():
+  for collection in tqdm(collections, desc='Validando documentação das coleções', unit=" arquivo", file=sys.stdout):
+    global actual_collection
+    with open(collection, 'r') as file:
+      collection_content = json.loads(file.read())
+    actual_collection = collection_content['info']['name']
+    collection_description = collection_content['info'].get('description', '')
+    if ignore_str in collection_description or wip_str in collection_description:
+      add_ignored_item('collections', actual_collection)
+      continue
+    if collection_description == '':
+      add_validation_error(actual_collection, 'Descrição vazia')
+    else:
+      # Verifica se a descrição contém os títulos obrigatórios
+      if '# Pré Requisitos' not in collection_content['info'].get('description', ''):
+        add_validation_error(actual_collection, "Título 'Pré Requisitos' ausente.")
+      if '# Passo a Passo' not in collection_content['info'].get('description', ''):
+          add_validation_error(actual_collection, "Título 'Passo a Passo' ausente.")
+      if '# Versionamento' not in collection_content['info'].get('description', ''):
+          add_validation_error(actual_collection, "Título 'Versionamento' ausente.")
+    if actual_collection not in validation_errors:
+      validated_collections['doc'].append(collection)
+     
 # Função para validar as coleções para gerar documentação OpenAPI
 def validate_openapi():
   validate_variables('globals')
@@ -319,13 +353,6 @@ def validate_openapi():
     get_requests(collection_content, validate = True)
     if actual_collection not in validation_errors:
       validated_collections['openapi'].append(collection)
-
-# Função para validar as coleções
-def validate_collections():
-  if args.doc:
-    validate_doc()
-  if args.openapi:
-    validate_openapi()
 
 # Função para processar as coleções para gerar documentação
 def process_doc():
@@ -405,6 +432,7 @@ def process_servers(host, protocol, api = None):
 def get_method_in_api():
   return openapi[current_api]['paths'][actual_request['path']][actual_request['method']]
 
+# Função auxiliar para checar se parâmetro existe e cria-lo cso não exista
 def parameter_exists(parameters):
   method_in_api = get_method_in_api()
   return not any(param.get('name').lower() == parameters['key'].lower() for param in method_in_api.setdefault('parameters', []))
@@ -651,6 +679,13 @@ def process_request(request_item):
   process_request_query_params(request_item['request'])
   process_request_body(request_item['request'])
 
+# Função para validar as coleções
+def validate_collections():
+  if args.doc:
+    validate_doc()
+  if args.openapi:
+    validate_openapi()
+
 # Função para processar as coleções
 def process_collections():
   if args.doc:
@@ -762,7 +797,6 @@ def print_output(output_dir):
         
     # if processing_errors:
     #   print(f'Erros de Processamento: {len(processing_errors)}')
-
 
 #Função para escrever os arquivos de saída
 def write_files(dir, files_dict, files_extension):
