@@ -5,18 +5,18 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Postman2KO",
+      "name": "postman2ko",
       "type": "debugpy",
       "request": "launch",
-      "program": "Postman2KO.py",
+      "program": "postman2ko.py",
       "console": "integratedTerminal",
-      "args": ["-d", "~/projects/claro-flex-collections", "-vVpOD"]
+      "args": ["-d", "~/projects/claro-flex-collections", "-cf", "Migração Pré Pago.postman_collection.json", "-vVO"]
     },
     {
-      "name": "SendKO",
+      "name": "send_ko",
       "type": "debugpy",
       "request": "launch",
-      "program": "SendKO.py",
+      "program": "send_ko.py",
       "console": "integratedTerminal",
       "args": ["-o", "opt.json", "-i", "~/projects/claro-flex-collections"]
     }

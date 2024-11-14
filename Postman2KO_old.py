@@ -286,11 +286,10 @@ def validate_items(items):
       add_validation_error(item['name'], 'Request sem descrição.')
 
 # Função para processar uma coleção
-# Remove as strings de ignorar e WIP da descrição e processa os itens da coleção.
 def process_collection(collection_content):
-  # Armazena a descrição da coleção, removendo as strings de ignorar e WIP
+  # Armazena a descrição da coleção
   if args.doc:
-    collection_descriptions[actual_collection_name] = collection_content['info'].get('description', '').replace(ignore_str, '').replace(wip_str, '')
+    collection_descriptions[actual_collection_name] = f'# {actual_collection_name}\n\n{collection_content['info'].get('description', '')}'
   
   if args.openapi:
     # Processa os itens (requests e pastas) dentro da coleção
@@ -394,8 +393,8 @@ def process_auth(auth_type, components_in_openapi, method_in_openapi):
     components_in_openapi['securitySchemes'].setdefault('basicAuth', security_schemes['basicAuth'])
     method_in_openapi['security'] = [{'basicAuth': []}]
 
+# Processa o valor do parâmetro, ajustando 'example' e 'examples'.
 def process_parameter_value(parameter, value):
-  """Processa o valor do parâmetro, ajustando 'example' e 'examples'."""
   if isinstance(value, dict):
     parameter['schema'].pop('example', None)
     parameter['schema']['examples'] = [{'summary': key, 'value': value[key]} for key in value]
