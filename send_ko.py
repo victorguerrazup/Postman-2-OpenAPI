@@ -16,7 +16,7 @@ options = {
   'client_id': '', 
   'client_key': '',
   'ks_slug_openapi': '',
-  'ks_slug_custom': ''
+  'ks_slug_doc': ''
 }
 
 files_to_upload = []
@@ -46,7 +46,7 @@ def get_upload_file_form_data(file_name, file_type):
   token = access_token['token']
   payload = json.dumps({
     'file_name': file_name,
-    'target_id': options['ks_slug_openapi'] if file_type == 'openapi' else options['ks_slug_custom'],
+    'target_id': options['ks_slug_openapi'] if file_type == 'openapi' else options['ks_slug_doc'],
     'target_type': 'KNOWLEDGE_SOURCE',
     'expiration': 3600
   })
@@ -126,7 +126,7 @@ def send_custom_ks(file_path, file_type):
     'Authorization': f'Bearer {token}'
   }
 
-  response = requests.request('POST', f"{options['stk_ai_url']}/v1/knowledge-sources/{options['ks_slug_openapi'] if file_type == 'openapi' else options['ks_slug_custom']}/custom", headers=headers, data=payload)
+  response = requests.request('POST', f"{options['stk_ai_url']}/v1/knowledge-sources/{options['ks_slug_openapi'] if file_type == 'openapi' else options['ks_slug_doc']}/custom", headers=headers, data=payload)
 
   if response.status_code != 204:
     print(f'Erro ao recuperar Form Data para o arquivo {file_path}!!\nStatus Code: {response.status_code}\nBody:\n{response.text}')
@@ -160,9 +160,9 @@ if __name__ == '__main__':
   # Adicionando os argumentos
   parser.add_argument('-ci', '--client_id', type=str, required=False, help='Client ID para autenticação no Stackspot')
   parser.add_argument('-ck', '--client_key', type=str, required=False, help='Client Key para autenticação no Stackspot')
-  parser.add_argument('--ks_openapi', type=str, required=False, help='Slug do knowledge source para envio dos arquivos OpenAPI')
-  parser.add_argument('--ks_custom', type=str, required=False, help='Slug do knowledge source para envio dos arquivos Custom')
-  parser.add_argument('-o', '--options', type=str, required=True, help='Arquivo de opções no formato JSON')
+  parser.add_argument('-O', '--ks_openapi', type=str, required=False, help='Slug do knowledge source para envio dos arquivos OpenAPI')
+  parser.add_argument('-D', '--ks_doc', type=str, required=False, help='Slug do knowledge source para envio dos arquivos Custom')
+  parser.add_argument('-o', '--options', type=str, required=False, help='Arquivo de opções no formato JSON')
   parser.add_argument('-i', '--input', type=str, required=False, default=os.getcwd(), help='Diretório de entrada com os arquivos OpenAPI e Custom')
   
   # Parseando os argumentos
@@ -180,8 +180,8 @@ if __name__ == '__main__':
   if args.ks_openapi:
     options['ks_slug_openapi'] = args.ks_openapi
     
-  if args.ks_custom:
-    options['ks_slug_custom'] = args.ks_custom
+  if args.ks_doc:
+    options['ks_slug_doc'] = args.ks_doc
    
   if is_token_expired():
     get_access_token(options['client_id'], options['client_key'])
