@@ -104,7 +104,7 @@ def get_upload_file_status(file_id, file_name):
     if status not in ['NEW', 'ERROR']:
       return response.json()
     elif status == 'ERROR':
-      print(f'Erro ao processar o arquivo {file_name}!!\nErro: {response.json().get('error_description', '')}')
+      print(f"Erro ao processar o arquivo {file_name}!!\nErro: {response.json().get('error_description', '')}")
       return None
 
     # Incrementa o número de tentativas e espera 1 segundo antes de tentar novamente
