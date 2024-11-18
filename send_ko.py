@@ -11,8 +11,8 @@ from tqdm import tqdm
 access_token = {'token': '', 'expiry': 1728443196}
 
 options = {
-  'auth_url': '',
-  'stk_ai_url': '',
+  'auth_url': 'https://idm.stackspot.com/stk-claro/oidc/oauth/token',
+  'stk_ai_url': 'https://genai-code-buddy-api.stackspot.com',
   'client_id': '', 
   'client_key': '',
   'ks_slug_openapi': '',
@@ -186,8 +186,8 @@ if __name__ == '__main__':
   if is_token_expired():
     get_access_token(options['client_id'], options['client_key'])
   
-  openapi_dir = os.path.join(args.input, 'openapi')
-  custom_dir = os.path.join(args.input, 'custom')
+  openapi_dir = os.path.join(args.input, 'KO', 'openapi')
+  custom_dir = os.path.join(args.input, 'KO', 'custom')
   
   # Processar os diretórios 'openapi' e 'custom'
   process_directory(openapi_dir, 'openapi')
