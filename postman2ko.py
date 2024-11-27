@@ -326,14 +326,14 @@ def validate_doc():
       continue
     if collection_description == '':
       add_validation_error(actual_collection, 'Descrição vazia')
-    else:
+    # else:
       # Verifica se a descrição contém os títulos obrigatórios
-      if '# Pré Requisitos' not in collection_content['info'].get('description', ''):
-        add_validation_error(actual_collection, "Título 'Pré Requisitos' ausente.")
-      if '# Passo a Passo' not in collection_content['info'].get('description', ''):
-          add_validation_error(actual_collection, "Título 'Passo a Passo' ausente.")
-      if '# Versionamento' not in collection_content['info'].get('description', ''):
-          add_validation_error(actual_collection, "Título 'Versionamento' ausente.")
+      # if '# Pré Requisitos' not in collection_content['info'].get('description', ''):
+      #   add_validation_error(actual_collection, "Título 'Pré Requisitos' ausente.")
+      # if '# Passo a Passo' not in collection_content['info'].get('description', ''):
+      #     add_validation_error(actual_collection, "Título 'Passo a Passo' ausente.")
+      # if '# Versionamento' not in collection_content['info'].get('description', ''):
+          # add_validation_error(actual_collection, "Título 'Versionamento' ausente.")
     if actual_collection not in validation_errors:
       validated_collections['doc'].append(collection)
      
@@ -368,7 +368,7 @@ def process_doc():
     if ignore_str in collection_description or wip_str in collection_description:
       add_ignored_item('collections', actual_collection)
       continue
-    docs[actual_collection] = collection_description.replace(ignore_str, '').replace(wip_str, '')
+    docs[actual_collection] = f"# {actual_collection}\n\n{collection_description.replace(ignore_str, '').replace(wip_str, '')}"
     
 # Função para processar as coleções para gerar documentação OpenAPI
 def process_openapi():
